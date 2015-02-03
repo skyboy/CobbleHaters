@@ -16,6 +16,7 @@ import java.util.List;
 
 import net.minecraft.block.material.Material;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
@@ -30,13 +31,14 @@ import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.BreakSpeed;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
 import net.minecraftforge.event.entity.player.PlayerOpenContainerEvent;
 import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
 
-@Mod(modid = "CblH8Rs", name = "Cobble Haters", version = "1.0.0.0", dependencies = "")
+@Mod(modid = "CblH8Rs", name = "Cobble Haters", version = "1.0.1.0", dependencies = "")
 public class CobbleHaters {
 
 	@EventHandler
@@ -66,6 +68,18 @@ public class CobbleHaters {
 	}
 
 	private TObjectIntHashMap<WeakReference<EntityPlayer>> containers = new TObjectIntHashMap<WeakReference<EntityPlayer>>();
+
+	@SubscribeEvent
+	public void stopRareDrops(LivingDeathEvent evt) {
+
+		if (!(evt.entity instanceof EntityLiving))
+			return;
+		EntityLiving ent = (EntityLiving)evt.entity;
+		for (int i = 5; i --> 0; )
+			if (ent.equipmentDropChances[i] < 1.0f) {
+				ent.equipmentDropChances[i] = 0;
+			}
+	}
 
 	@SubscribeEvent
 	public void eatCobble(PlayerOpenContainerEvent evt) {
