@@ -21,6 +21,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.monster.EntityIronGolem;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
@@ -46,7 +47,7 @@ import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
 
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = "CblH8Rs", name = "Cobble Haters", version = "1.0.1.0", dependencies = "")
+@Mod(modid = "CblH8Rs", name = "Cobble Haters", version = "2.0.0.0", dependencies = "")
 public class CobbleHaters {
 
 	Logger log;
@@ -80,6 +81,9 @@ public class CobbleHaters {
 
 		config.get("entity_drops", IMob.class.getName(), new String[] {
 			"iron_ingot", "gold_nugget"
+		});
+		config.get("entity_drops", EntityIronGolem.class.getName(), new String[] {
+			"iron_ingot"
 		});
 
 		ConfigCategory droplist = config.getCategory("entity_drops");
