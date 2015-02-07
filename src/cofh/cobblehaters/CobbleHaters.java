@@ -5,6 +5,7 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.Event.Result;
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.GameData;
 
@@ -178,7 +179,7 @@ public class CobbleHaters {
 		return stack != null && destroylist.contains(stack.getItem());
 	}
 
-	@SubscribeEvent
+	@SubscribeEvent(priority=EventPriority.LOWEST)
 	public void stopEquipment(LivingDeathEvent evt) {
 
 		if (equipmentDrops || !(evt.entity instanceof EntityLiving))
@@ -190,7 +191,7 @@ public class CobbleHaters {
 			}
 	}
 
-	@SubscribeEvent
+	@SubscribeEvent(priority=EventPriority.LOWEST)
 	public void stopDrops(LivingDropsEvent evt) {
 
 		if (entitylist.size() == 0)
@@ -207,7 +208,7 @@ public class CobbleHaters {
 		}
 	}
 
-	@SubscribeEvent
+	@SubscribeEvent(priority=EventPriority.LOWEST)
 	public void eatCobble(PlayerOpenContainerEvent evt) {
 
 		if (!destroyItems || evt.entityPlayer.openContainer == evt.entityPlayer.inventoryContainer)
@@ -222,7 +223,7 @@ public class CobbleHaters {
 		}
 	}
 
-	@SubscribeEvent
+	@SubscribeEvent(priority=EventPriority.LOWEST)
 	public void eatCobble(HarvestDropsEvent evt) {
 
 		for (Iterator<ItemStack> i = evt.drops.iterator(); i.hasNext();) {
@@ -232,8 +233,7 @@ public class CobbleHaters {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	@SubscribeEvent
+	@SubscribeEvent(priority=EventPriority.LOWEST)
 	public void eatCobble(EntityJoinWorldEvent evt) {
 
 		if (evt.entity.getClass().equals(EntityItem.class)) {
@@ -244,7 +244,7 @@ public class CobbleHaters {
 		}
 	}
 
-	@SubscribeEvent
+	@SubscribeEvent(priority=EventPriority.HIGHEST)
 	public void stopTrade(EntityInteractEvent evt) {
 
 		if (stopTrades && evt.target instanceof EntityVillager) {
@@ -254,7 +254,7 @@ public class CobbleHaters {
 		}
 	}
 
-	@SubscribeEvent
+	@SubscribeEvent(priority=EventPriority.HIGHEST)
 	public void stopCobble(PlayerInteractEvent evt) {
 
 		ItemStack stack = evt.entityPlayer.getCurrentEquippedItem();
@@ -265,7 +265,7 @@ public class CobbleHaters {
 		}
 	}
 
-	@SubscribeEvent
+	@SubscribeEvent(priority=EventPriority.LOWEST)
 	public void silkStone(BreakSpeed evt) {
 
 		if (!harvestlist.contains(evt.block))
