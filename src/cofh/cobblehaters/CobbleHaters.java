@@ -30,8 +30,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.potion.Potion;
-import net.minecraft.village.MerchantRecipe;
-import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.ConfigCategory;
@@ -40,6 +38,7 @@ import net.minecraftforge.common.config.Property;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
+import net.minecraftforge.event.entity.player.EntityInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.BreakSpeed;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerOpenContainerEvent;
@@ -220,11 +219,16 @@ public class CobbleHaters {
 			ItemStack stack = ent.getEntityItem();
 			if (shouldDestroy(stack))
 				ent.setDead();
-		} else if (stopTrades && evt.entity instanceof EntityVillager) {
-			EntityVillager ent = (EntityVillager) evt.entity;
-			MerchantRecipeList list = ent.getRecipes(null);
-			list.clear();
-			list.add(new MerchantRecipe(new ItemStack(Blocks.cobblestone), null, new ItemStack(Blocks.cobblestone)));
+		}
+	}
+
+	@SubscribeEvent
+	public void stopTrade(EntityInteractEvent evt) {
+
+		if (stopTrades && evt.target instanceof EntityVillager) {
+			((EntityVillager)evt.target).func_110297_a_(null);
+			((EntityVillager)evt.target).setRevengeTarget(evt.entityLiving);
+			evt.setCanceled(true);
 		}
 	}
 
