@@ -74,18 +74,70 @@ public class CobbleHaters {
 			Items.stone_axe.setHarvestLevel("axe", -1);
 			Items.stone_shovel.setHarvestLevel("shovel", -1);
 		}
+
 		stopTrades = config.get("general", "DisableVillagerTrades", true).getBoolean();
 		destroyItems = config.get("general", "DestroyItemsOnGuiChange", true).getBoolean();
 		blacklistPlace = config.get("general", "BlockBlacklistPlacement", true).getBoolean();
 		equipmentDrops = config.get("general", "EquipmentDrops", false).getBoolean();
 
 		config.get("entity_drops", IMob.class.getName(), new String[] {
-			"iron_ingot", "gold_nugget"
+				"iron_ingot", "gold_nugget"
 		});
 		config.get("entity_drops", EntityIronGolem.class.getName(), new String[] {
 			"iron_ingot"
 		});
+	}
 
+	@EventHandler
+	public void loadComplete(FMLLoadCompleteEvent event) {
+
+		/**
+		 * Block drop destruction
+		 */
+		String[] list = new String[] {
+				"cobblestone", "mossy_cobblestone", "stone_pickaxe", "stone_axe",
+				"stone_shovel", "stone_hoe", "stone_sword"
+		};
+		list = config.get("general", "Blacklist", list, "These items will not drop from blocks").getStringList();
+		for (String e : list) {
+			Item item = GameData.getItemRegistry().getObject(e);
+			if (item != null)
+				blacklist.add(item);
+			else
+				log.warn("blacklist entry %s not found", e);
+		}
+
+		/**
+		 * Item erasure (shares default value)
+		 */
+		list = config.get("general", "DestroyItems", list, "These items will be destroyed when found").getStringList();
+		for (String e : list) {
+			Item item = GameData.getItemRegistry().getObject(e);
+			if (item != null)
+				destroylist.add(item);
+			else
+				log.warn("destroyItems entry %s not found", e);
+		}
+
+		/**
+		 * Mining speed reduction
+		 */
+		list = new String[] {
+				"stone", "cobblestone", "mossy_cobblestone", "furnace", "lit_furnace"
+		};
+		list = config.get("general", "HarvestBlocks", list, "These blocks require silk touch to be mined quickly")
+				.getStringList();
+		for (String e : list) {
+			Block item = GameData.getBlockRegistry().getObject(e);
+			if (item != Blocks.air)
+				harvestlist.add(item);
+			else
+				log.warn("harvestBlocks entry %s not found", e);
+		}
+
+		/**
+		 * Mob drop destruction
+		 */
 		ConfigCategory droplist = config.getCategory("entity_drops");
 		droplist.setComment("Entries in this category are used to stop entities from listed dropping items\n\n" +
 				"Format: S:<class.name> = <array of entries>");
@@ -106,44 +158,10 @@ public class CobbleHaters {
 				continue;
 			}
 		}
-	}
 
-	@EventHandler
-	public void loadComplete(FMLLoadCompleteEvent event) {
-
-		String[] list = new String[] {
-				"cobblestone", "mossy_cobblestone", "stone_pickaxe", "stone_axe",
-				"stone_shovel", "stone_hoe", "stone_sword"
-		};
-		list = config.get("general", "Blacklist", list, "These items will not drop from blocks").getStringList();
-		for (String e : list) {
-			Item item = GameData.getItemRegistry().getObject(e);
-			if (item != null)
-				blacklist.add(item);
-			else
-				log.warn("blacklist entry %s not found", e);
-		}
-		list = config.get("general", "DestroyItems", list, "These items will be destroyed when found").getStringList();
-		for (String e : list) {
-			Item item = GameData.getItemRegistry().getObject(e);
-			if (item != null)
-				destroylist.add(item);
-			else
-				log.warn("destroyItems entry %s not found", e);
-		}
-		list = new String[] {
-				"stone", "cobblestone", "mossy_cobblestone", "furnace", "lit_furnace"
-		};
-		list = config.get("general", "HarvestBlocks", list, "These blocks require silk touch to be mined quickly")
-				.getStringList();
-		for (String e : list) {
-			Block item = GameData.getBlockRegistry().getObject(e);
-			if (item != Blocks.air)
-				harvestlist.add(item);
-			else
-				log.warn("harvestBlocks entry %s not found", e);
-		}
-
+		/**
+		 * Smelting disable
+		 */
 		if (config.get("general", "DisableSmelting", true).getBoolean())
 			FurnaceRecipes.smelting().getSmeltingList().clear();
 
@@ -180,7 +198,7 @@ public class CobbleHaters {
 		for (Entry<Class<?>, ArrayList<Item>> e : entitylist.entrySet()) {
 			if (e.getKey().isInstance(evt.entity)) {
 				ArrayList<Item> list = e.getValue();
-				for (Iterator<EntityItem> i = evt.drops.iterator(); i.hasNext(); ) {
+				for (Iterator<EntityItem> i = evt.drops.iterator(); i.hasNext();) {
 					ItemStack stack = i.next().getEntityItem();
 					if (stack != null && list.contains(stack.getItem()))
 						i.remove();
@@ -207,7 +225,7 @@ public class CobbleHaters {
 	@SubscribeEvent
 	public void eatCobble(HarvestDropsEvent evt) {
 
-		for (Iterator<ItemStack> i = evt.drops.iterator(); i.hasNext(); ) {
+		for (Iterator<ItemStack> i = evt.drops.iterator(); i.hasNext();) {
 			ItemStack stack = i.next();
 			if (isBad(stack) || shouldDestroy(stack))
 				i.remove();
@@ -230,8 +248,8 @@ public class CobbleHaters {
 	public void stopTrade(EntityInteractEvent evt) {
 
 		if (stopTrades && evt.target instanceof EntityVillager) {
-			((EntityVillager)evt.target).func_110297_a_(null);
-			((EntityVillager)evt.target).setRevengeTarget(evt.entityLiving);
+			((EntityVillager) evt.target).func_110297_a_(null);
+			((EntityVillager) evt.target).setRevengeTarget(evt.entityLiving);
 			evt.setCanceled(true);
 		}
 	}
