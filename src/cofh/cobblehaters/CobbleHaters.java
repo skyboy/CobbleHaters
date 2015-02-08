@@ -1,5 +1,6 @@
 package cofh.cobblehaters;
 
+import com.google.common.base.Predicate;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
@@ -32,6 +33,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.potion.Potion;
+import net.minecraft.util.WeightedRandomFishable;
+import net.minecraftforge.common.FishingHooks;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.ConfigCategory;
@@ -48,7 +51,7 @@ import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
 
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = "CblH8Rs", name = "Cobble Haters", version = "2.0.0.0", dependencies = "")
+@Mod(modid = "CblH8Rs", name = "Cobble Haters", version = "2.0.2.0", dependencies = "")
 public class CobbleHaters {
 
 	Logger log;
@@ -165,6 +168,23 @@ public class CobbleHaters {
 		 */
 		if (config.get("general", "DisableSmelting", true).getBoolean())
 			FurnaceRecipes.smelting().getSmeltingList().clear();
+
+		if (config.get("general", "DisableNonfishFishing", true).getBoolean()) {
+			FishingHooks.removeTreasure(new Predicate<WeightedRandomFishable>() {
+				@Override
+				public boolean apply(WeightedRandomFishable input) {
+
+					return false;
+				}
+			});
+			FishingHooks.removeJunk(new Predicate<WeightedRandomFishable>() {
+				@Override
+				public boolean apply(WeightedRandomFishable input) {
+
+					return false;
+				}
+			});
+		}
 
 		config.save();
 	}
