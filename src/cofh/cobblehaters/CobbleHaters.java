@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -30,9 +31,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.potion.Potion;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.WeightedRandomFishable;
 import net.minecraftforge.common.FishingHooks;
 import net.minecraftforge.common.ForgeHooks;
@@ -48,10 +51,11 @@ import net.minecraftforge.event.entity.player.PlayerEvent.BreakSpeed;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerOpenContainerEvent;
 import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
+import net.minecraftforge.oredict.OreDictionary;
 
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = "CblH8Rs", name = "Cobble Haters", version = "2.0.2.0", dependencies = "")
+@Mod(modid = "CblH8Rs", name = "Cobble Haters", version = "2.0.2.1", dependencies = "")
 public class CobbleHaters {
 
 	Logger log;
@@ -65,6 +69,9 @@ public class CobbleHaters {
 	boolean destroyItems;
 	boolean blacklistPlace;
 	boolean equipmentDrops;
+	static HashMap<ItemStack, ItemStack> smeltingList = new HashMap<ItemStack, ItemStack>();
+	static Set<Entry<ItemStack, ItemStack>> smeltingSet = smeltingList.entrySet();
+	static boolean popcornSmelting, foodOnly;
 
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
@@ -83,6 +90,8 @@ public class CobbleHaters {
 		destroyItems = config.get("general", "DestroyItemsOnGuiChange", true).getBoolean();
 		blacklistPlace = config.get("general", "BlockBlacklistPlacement", true).getBoolean();
 		equipmentDrops = config.get("general", "EquipmentDrops", false).getBoolean();
+		popcornSmelting = config.get("general", "EnablePopcornSmelting", true, "Throwing items into lava may smelt it").getBoolean();
+		foodOnly = config.get("general", "FoodPopcornSmeltingOnly", true, "PopcornSmelting works only for food").getBoolean();
 
 		config.get("entity_drops", IMob.class.getName(), new String[] {
 				"iron_ingot", "gold_nugget"
@@ -166,8 +175,10 @@ public class CobbleHaters {
 		/**
 		 * Smelting disable
 		 */
-		if (config.get("general", "DisableSmelting", true).getBoolean())
+		if (config.get("general", "DisableSmelting", true).getBoolean()) {
+			smeltingList.putAll(FurnaceRecipes.smelting().getSmeltingList());
 			FurnaceRecipes.smelting().getSmeltingList().clear();
+		}
 
 		if (config.get("general", "DisableNonfishFishing", true).getBoolean()) {
 			FishingHooks.removeTreasure(new Predicate<WeightedRandomFishable>() {
@@ -187,6 +198,32 @@ public class CobbleHaters {
 		}
 
 		config.save();
+	}
+
+	public static void itemDeath(EntityItem ent, DamageSource damage) {
+
+		if (!popcornSmelting || ent.worldObj.isRemote || !damage.isFireDamage())
+			return;
+		ItemStack oStack = ent.getEntityItem();
+		if (foodOnly && !(oStack.getItem() instanceof ItemFood))
+			return;
+		for (Entry<ItemStack, ItemStack> e : smeltingSet) {
+			ItemStack aStack = e.getKey();
+			if (aStack.getItem() == oStack.getItem() &&
+					(aStack.getItemDamage() == OreDictionary.WILDCARD_VALUE ||
+					aStack.getItemDamage() == oStack.getItemDamage())) {
+				ItemStack r = e.getValue().copy();
+				r.stackSize *= oStack.stackSize;
+				while (r.stackSize > 0) {
+					EntityItem item = new EntityItem(ent.worldObj, ent.posX, ent.posY, ent.posZ,
+						r.splitStack(Math.min(r.stackSize, r.getMaxStackSize())));
+					item.delayBeforeCanPickup = 20;
+					item.setVelocity(ent.motionX, ent.motionY, ent.motionZ);
+					ent.worldObj.spawnEntityInWorld(item);
+				}
+				break;
+			}
+		}
 	}
 
 	private boolean isBad(ItemStack stack) {
