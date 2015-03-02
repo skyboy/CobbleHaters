@@ -218,7 +218,9 @@ public class CobbleHaters {
 					EntityItem item = new EntityItem(ent.worldObj, ent.posX, ent.posY, ent.posZ,
 						r.splitStack(Math.min(r.stackSize, r.getMaxStackSize())));
 					item.delayBeforeCanPickup = 20;
-					item.setVelocity(ent.motionX, ent.motionY, ent.motionZ);
+					item.motionX = ent.motionX;
+					item.motionY = ent.motionY;
+					item.motionZ = ent.motionZ;
 					ent.worldObj.spawnEntityInWorld(item);
 				}
 				break;
